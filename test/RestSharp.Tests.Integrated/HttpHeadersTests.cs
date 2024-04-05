@@ -1,19 +1,35 @@
 using System.Net;
 using RestSharp.Tests.Integrated.Server;
+using WireMock.Util;
 
-namespace RestSharp.Tests.Integrated; 
+namespace RestSharp.Tests.Integrated;
 
-[Collection(nameof(TestServerCollection))]
-public class HttpHeadersTests {
-    readonly ITestOutputHelper _output;
-    readonly RestClient        _client;
+public class HttpHeadersTests : IDisposable {
+    readonly WireMockServer _server = WireMockTestServer.StartTestServer();
+    readonly RestClient     _client;
 
-    public HttpHeadersTests(TestServerFixture fixture, ITestOutputHelper output) {
-        _output = output;
-        _client = new RestClient(new RestClientOptions(fixture.Server.Url) { ThrowOnAnyError = true });
-    }
+    public HttpHeadersTests() => _client = new RestClient(new RestClientOptions(_server.Url!) { ThrowOnAnyError = true });
 
     [Fact]
+    public async Task Ensure_headers_correctly_set_in_the_interceptor() {
+        const string headerName  = "HeaderName";
+        const string headerValue = "HeaderValue";
+
+        var request = new RestRequest("/headers") {
+            Interceptors = [new HeaderInterceptor(headerName, headerValue)]
+        };
+
+        // Run
+        var response = await _client.ExecuteAsync<TestServerResponse[]>(request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var header = response.Data!.First(x => x.Name == headerName);
+        header.Should().NotBeNull();
+        header.Value.Should().Be(headerValue);
+    }
+
+    [Fact, Obsolete("Obsolete")]
     public async Task Ensure_headers_correctly_set_in_the_hook() {
         const string headerName  = "HeaderName";
         const string headerValue = "HeaderValue";
@@ -30,6 +46,7 @@ public class HttpHeadersTests {
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Data.Should().NotBeNull();
         var header = response.Data!.First(x => x.Name == headerName);
         header.Should().NotBeNull();
         header.Value.Should().Be(headerValue);
@@ -48,6 +65,7 @@ public class HttpHeadersTests {
         var response = await _client.ExecuteAsync<TestServerResponse[]>(request);
         CheckHeader(defaultHeader);
         CheckHeader(requestHeader);
+        return;
 
         void CheckHeader(Header header) {
             var h = response.Data!.First(x => x.Name == header.Name);
@@ -57,4 +75,16 @@ public class HttpHeadersTests {
     }
 
     record Header(string Name, string Value);
+
+    class HeaderInterceptor(string headerName, string headerValue) : Interceptors.Interceptor {
+        public override ValueTask BeforeHttpRequest(HttpRequestMessage requestMessage, CancellationToken cancellationToken) {
+            requestMessage.Headers.Add(headerName, headerValue);
+            return default;
+        }
+    }
+
+    public void Dispose() {
+        _server.Dispose();
+        _client.Dispose();
+    }
 }

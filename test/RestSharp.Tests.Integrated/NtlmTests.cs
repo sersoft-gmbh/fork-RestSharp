@@ -1,22 +1,25 @@
 ﻿using System.Net;
+using System.Runtime.InteropServices;
 using RestSharp.Tests.Integrated.Fixtures;
 using RestSharp.Tests.Shared.Fixtures;
 
 namespace RestSharp.Tests.Integrated;
 
-public class RequestHeadTests : CaptureFixture {
+/// <summary>
+/// These tests use NTML auth and don't work on Linux, at least not in GH Actions
+/// </summary>
+public class NtlmTests : CaptureFixture {
     [Fact]
     public async Task Does_Not_Pass_Default_Credentials_When_Server_Does_Not_Negotiate() {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return;
+
         using var server = SimpleServer.Create(Handlers.Generic<RequestHeadCapturer>());
 
-        var client = new RestClient(new RestClientOptions(server.Url) { UseDefaultCredentials = true });
-
+        var client  = new RestClient(new RestClientOptions(server.Url) { UseDefaultCredentials = true });
         var request = new RestRequest(RequestHeadCapturer.Resource);
-
         await client.ExecuteAsync(request);
 
         Assert.NotNull(RequestHeadCapturer.CapturedHeaders);
-
         var keys = RequestHeadCapturer.CapturedHeaders.Keys.Cast<string>().ToArray();
 
         Assert.False(
@@ -27,6 +30,8 @@ public class RequestHeadTests : CaptureFixture {
 
     [Fact]
     public async Task Does_Not_Pass_Default_Credentials_When_UseDefaultCredentials_Is_False() {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return;
+
         using var server = SimpleServer.Create(Handlers.Generic<RequestHeadCapturer>(), AuthenticationSchemes.Negotiate);
 
         var client   = new RestClient(new RestClientOptions(server.Url) { UseDefaultCredentials = false });
@@ -39,7 +44,7 @@ public class RequestHeadTests : CaptureFixture {
 
     [Fact]
     public async Task Passes_Default_Credentials_When_UseDefaultCredentials_Is_True() {
-        if (!OperatingSystem.IsWindows()) return;
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
 
         using var server = SimpleServer.Create(Handlers.Generic<RequestHeadCapturer>(), AuthenticationSchemes.Negotiate);
 

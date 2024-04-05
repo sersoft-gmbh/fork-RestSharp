@@ -14,7 +14,9 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using RestSharp.Authenticators;
+using RestSharp.Interceptors;
 using RestSharp.Serializers;
 
 // ReSharper disable VirtualMemberCallInConstructor
@@ -36,7 +38,11 @@ public partial class RestClient : IRestClient {
     /// Content types that will be sent in the Accept header. The list is populated from the known serializers.
     /// If you need to send something else by default, set this property to a different value.
     /// </summary>
-    public string[] AcceptedContentTypes { get; set; }
+    public string[] AcceptedContentTypes {
+        get;
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        set;
+    }
 
     internal HttpClient HttpClient { get; }
 
@@ -84,11 +90,12 @@ public partial class RestClient : IRestClient {
             HttpClient         = GetClient();
         }
 
+        return;
+
         HttpClient GetClient() {
             var handler = new HttpClientHandler();
-            ConfigureHttpMessageHandler(handler, Options);
+            ConfigureHttpMessageHandler(handler, options);
             var finalHandler = options.ConfigureMessageHandler?.Invoke(handler) ?? handler;
-
             var httpClient = new HttpClient(finalHandler);
             ConfigureHttpClient(httpClient, options);
             ConfigureDefaultParameters(options);
@@ -225,7 +232,7 @@ public partial class RestClient : IRestClient {
     }
 
     // ReSharper disable once CognitiveComplexity
-    static void ConfigureHttpMessageHandler(HttpClientHandler handler, ReadOnlyRestClientOptions options) {
+    static void ConfigureHttpMessageHandler(HttpClientHandler handler, RestClientOptions options) {
 #if NET
         if (!OperatingSystem.IsBrowser()) {
 #endif
@@ -278,8 +285,7 @@ public partial class RestClient : IRestClient {
     }
 
     readonly bool _disposeHttpClient;
-
-    bool _disposed;
+    bool          _disposed;
 
     protected virtual void Dispose(bool disposing) {
         if (disposing && !_disposed) {

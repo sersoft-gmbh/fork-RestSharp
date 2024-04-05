@@ -16,6 +16,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using RestSharp.Authenticators;
 using RestSharp.Extensions;
+using RestSharp.Interceptors;
 
 // ReSharper disable ReplaceSubstringWithRangeIndexer
 // ReSharper disable UnusedAutoPropertyAccessor.Global
@@ -47,12 +48,14 @@ public class RestRequest {
 
         var queryStringStart = Resource.IndexOf('?');
 
-        if (queryStringStart >= 0 && Resource.IndexOf('=') > queryStringStart) {
-            var queryParams = ParseQuery(Resource.Substring(queryStringStart + 1));
-            Resource = Resource.Substring(0, queryStringStart);
+        if (queryStringStart < 0 || Resource.IndexOf('=') <= queryStringStart) return;
 
-            foreach (var param in queryParams) this.AddQueryParameter(param.Key, param.Value, false);
-        }
+        var queryParams = ParseQuery(Resource.Substring(queryStringStart + 1));
+        Resource = Resource.Substring(0, queryStringStart);
+
+        foreach (var param in queryParams) this.AddQueryParameter(param.Key, param.Value, false);
+
+        return;
 
         static IEnumerable<KeyValuePair<string, string?>> ParseQuery(string query)
             => query.Split(new[] { '&' }, StringSplitOptions.RemoveEmptyEntries)
@@ -167,19 +170,22 @@ public class RestRequest {
     /// <summary>
     /// When supplied, the function will be called before calling the deserializer
     /// </summary>
+    [Obsolete("Use Interceptors instead")]
     public Action<RestResponse>? OnBeforeDeserialization { get; set; }
 
     /// <summary>
     /// When supplied, the function will be called before making a request
     /// </summary>
+    [Obsolete("Use Interceptors instead")]
     public Func<HttpRequestMessage, ValueTask>? OnBeforeRequest { get; set; }
 
     /// <summary>
     /// When supplied, the function will be called after the request is complete
     /// </summary>
+    [Obsolete("Use Interceptors instead")]
     public Func<HttpResponseMessage, ValueTask>? OnAfterRequest { get; set; }
 
-    internal void IncreaseNumAttempts() => Attempts++;
+    internal void IncreaseNumberOfAttempts() => Attempts++;
 
     /// <summary>
     /// How many attempts were made to send this Request
@@ -226,6 +232,11 @@ public class RestRequest {
             _advancedResponseHandler = value;
         }
     }
+    
+    /// <summary>
+    /// Request-level interceptors. Will be combined with client-level interceptors if set.
+    /// </summary>
+    public List<Interceptor>? Interceptors { get; set; }
 
     /// <summary>
     /// Adds a parameter object to the request parameters

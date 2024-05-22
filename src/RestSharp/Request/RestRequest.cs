@@ -78,7 +78,7 @@ public class RestRequest {
     public RestRequest(Uri resource, Method method = Method.Get)
         : this(resource.IsAbsoluteUri ? resource.AbsoluteUri : resource.OriginalString, method) { }
 
-    readonly List<FileParameter> _files = new();
+    readonly List<FileParameter> _files = [];
 
     /// <summary>
     /// Always send a multipart/form-data request - even when no Files are present.

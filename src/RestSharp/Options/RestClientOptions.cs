@@ -38,6 +38,7 @@ public class RestClientOptions {
 
     public RestClientOptions() { }
 
+    // ReSharper disable once MemberCanBePrivate.Global
     public RestClientOptions(Uri baseUrl) => BaseUrl = baseUrl;
 
     public RestClientOptions(string baseUrl) : this(new Uri(Ensure.NotEmptyString(baseUrl, nameof(baseUrl)))) { }
@@ -80,7 +81,7 @@ public class RestClientOptions {
     public ICredentials? Credentials { get; set; }
 
     /// <summary>
-    /// Determine whether or not the "default credentials" (e.g. the user account under which the current process is
+    /// Determine whether the "default credentials" (e.g. the user account under which the current process is
     /// running) will be sent along to the server. The default is false.
     /// Passed to <see cref="HttpMessageHandler"/> <code>UseDefaultCredentials</code> property
     /// </summary>

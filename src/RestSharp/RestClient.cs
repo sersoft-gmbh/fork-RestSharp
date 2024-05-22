@@ -33,6 +33,7 @@ public delegate void ConfigureRestClient(RestClientOptions options);
 /// <summary>
 /// Client to translate RestRequests into Http requests and process response result
 /// </summary>
+// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 public partial class RestClient : IRestClient {
     /// <summary>
     /// Content types that will be sent in the Accept header. The list is populated from the known serializers.
@@ -54,11 +55,6 @@ public partial class RestClient : IRestClient {
 
     /// <inheritdoc/>
     public DefaultParameters DefaultParameters { get; }
-
-    [Obsolete("Use RestClientOptions.Authenticator instead")]
-    public IAuthenticator? Authenticator => Options.Authenticator;
-
-    // set => Options.Authenticator = value;
 
     /// <summary>
     /// Creates an instance of RestClient using the provided <see cref="RestClientOptions"/>
@@ -226,7 +222,6 @@ public partial class RestClient : IRestClient {
         : this(new HttpClient(handler, disposeHandler), true, configureRestClient, configureSerialization) { }
 
     static void ConfigureHttpClient(HttpClient httpClient, RestClientOptions options) {
-        
         // We will use Options.Timeout in ExecuteAsInternalAsync method
         httpClient.Timeout = Timeout.InfiniteTimeSpan;
 
@@ -259,6 +254,7 @@ public partial class RestClient : IRestClient {
         handler.AllowAutoRedirect = options.FollowRedirects;
 
 #if NET
+        // ReSharper disable once InvertIf
         if (!OperatingSystem.IsBrowser() && !OperatingSystem.IsIOS() && !OperatingSystem.IsTvOS()) {
 #endif
             if (handler.SupportsProxy) handler.Proxy = options.Proxy;
@@ -278,12 +274,12 @@ public partial class RestClient : IRestClient {
     }
 
     void ConfigureDefaultParameters(RestClientOptions options) {
-        if (options.UserAgent != null) {
-            if (!options.AllowMultipleDefaultParametersWithSameName
-                && DefaultParameters.Any(parameter => parameter.Type == ParameterType.HttpHeader && parameter.Name == KnownHeaders.UserAgent))
-                DefaultParameters.RemoveParameter(KnownHeaders.UserAgent, ParameterType.HttpHeader);
-            DefaultParameters.AddParameter(Parameter.CreateParameter(KnownHeaders.UserAgent, options.UserAgent, ParameterType.HttpHeader));
-        }
+        if (options.UserAgent == null) return;
+
+        if (!options.AllowMultipleDefaultParametersWithSameName
+            && DefaultParameters.Any(parameter => parameter.Type == ParameterType.HttpHeader && parameter.Name == KnownHeaders.UserAgent))
+            DefaultParameters.RemoveParameter(KnownHeaders.UserAgent, ParameterType.HttpHeader);
+        DefaultParameters.AddParameter(Parameter.CreateParameter(KnownHeaders.UserAgent, options.UserAgent, ParameterType.HttpHeader));
     }
 
     readonly bool _disposeHttpClient;

@@ -31,7 +31,7 @@ public sealed class PutTests(WireMockTestServer server) : IClassFixture<WireMock
         var request = new RestRequest("/timeout", Method.Put).AddBody("Body_Content");
 
         // Half the value of ResponseHandler.Timeout
-        request.Timeout = 200;
+        request.Timeout = TimeSpan.FromMilliseconds(200);
 
         var response = await _client.ExecuteAsync(request);
 

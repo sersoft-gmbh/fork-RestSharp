@@ -139,7 +139,7 @@ public class RestRequest {
     /// <summary>
     /// Custom request timeout
     /// </summary>
-    public int Timeout { get; set; }
+    public TimeSpan? Timeout { get; set; }
 
     /// <summary>
     /// The Resource URL to make the request against.

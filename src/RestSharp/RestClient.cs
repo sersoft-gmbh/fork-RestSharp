@@ -15,8 +15,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
-using RestSharp.Authenticators;
-using RestSharp.Interceptors;
 using RestSharp.Serializers;
 
 // ReSharper disable VirtualMemberCallInConstructor

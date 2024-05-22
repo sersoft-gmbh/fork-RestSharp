@@ -139,7 +139,7 @@ public class RestRequest {
     /// <summary>
     /// Custom request timeout
     /// </summary>
-    public int Timeout { get; set; }
+    public TimeSpan? Timeout { get; set; }
 
     /// <summary>
     /// The Resource URL to make the request against.
@@ -163,7 +163,7 @@ public class RestRequest {
 
     /// <summary>
     /// Used by the default deserializers to determine where to start deserializing from.
-    /// Can be used to skip container or root elements that do not have corresponding deserialzation targets.
+    /// Can be used to skip container or root elements that do not have corresponding deserialization targets.
     /// </summary>
     public string? RootElement { get; set; }
 

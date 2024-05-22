@@ -237,11 +237,11 @@ public class OAuth1Auth : IAuthenticator {
         var oauthParameters = ParameterHandling switch {
             OAuthParameterHandling.HttpAuthorizationHeader => CreateHeaderParameters(),
             OAuthParameterHandling.UrlOrPostParameters     => CreateUrlParameters(),
-            _ =>
-                throw new ArgumentOutOfRangeException(nameof(ParameterHandling))
+            _                                              => throw new ArgumentOutOfRangeException(nameof(ParameterHandling))
         };
 
         request.AddOrUpdateParameters(oauthParameters);
+        return;
 
         IEnumerable<Parameter> CreateHeaderParameters() => new[] { new HeaderParameter(KnownHeaders.Authorization, GetAuthorizationHeader()) };
 

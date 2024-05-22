@@ -93,8 +93,11 @@ static class OAuthTools {
     public static string? UrlEncodeRelaxed(string? value) {
         if (value == null) return null;
 
+        // Do RFC 2396 escaping by calling the .NET method to do the work.
+        var escaped = Uri.EscapeDataString(value);
+
         // Escape RFC 3986 chars first.
-        var escapedRfc3986 = new StringBuilder(value);
+        var escapedRfc3986 = new StringBuilder(escaped);
 
         for (var i = 0; i < UriRfc3986CharsToEscape.Length; i++) {
             var t = UriRfc3986CharsToEscape[i];
@@ -102,11 +105,8 @@ static class OAuthTools {
             escapedRfc3986.Replace(t, UriRfc3968EscapedHex[i]);
         }
 
-        // Do RFC 2396 escaping by calling the .NET method to do the work.
-        var escapedRfc2396 = Uri.EscapeDataString(escapedRfc3986.ToString());
-
         // Return the fully-RFC3986-escaped string.
-        return escapedRfc2396;
+        return escapedRfc3986.ToString();
     }
 
     /// <summary>

@@ -31,7 +31,7 @@
     <PackageVersion Include="JetBrains.Annotations" Version="2023.2.0" />
   </ItemGroup>
   <ItemGroup Label="Testing dependencies">
-    <PackageVersion Include="AutoFixture" Version="4.18.0" />
+    <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="FluentAssertions" Version="6.12.0" />
     <PackageVersion Include="HttpTracer" Version="2.1.1" />
